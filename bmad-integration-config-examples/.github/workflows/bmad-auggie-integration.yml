@@ -1,0 +1,302 @@
+# BMad-Method 与 Auggie CLI 集成工作流
+name: 🔄 BMad-Auggie Integration
+
+# 触发条件
+on:
+  # Pull Request 触发
+  pull_request:
+    branches: 
+      - main
+      - develop
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+  
+  # Push 到主分支触发
+  push:
+    branches: 
+      - main
+      - develop
+  
+  # 手动触发
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: '运行环境'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+# 环境变量
+env:
+  NODE_VERSION: '22'
+  AUGGIE_VERSION: 'latest'
+  BMAD_VERSION: 'latest'
+
+# 作业定义
+jobs:
+  # 环境准备和依赖安装
+  setup:
+    name: 🚀 环境准备
+    runs-on: ubuntu-latest
+    outputs:
+      node-version: ${{ steps.setup-node.outputs.node-version }}
+      cache-key: ${{ steps.cache-deps.outputs.cache-hit }}
+    
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          # 获取完整历史，用于 BMad-Method 分析
+          fetch-depth: 0
+      
+      - name: 🟢 设置 Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📦 缓存依赖
+        id: cache-deps
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+            .augment/cache
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+      
+      - name: 🔧 安装全局依赖
+        run: |
+          npm install -g @augmentcode/auggie@${{ env.AUGGIE_VERSION }}
+          npx bmad-method@${{ env.BMAD_VERSION }} install
+      
+      - name: ✅ 验证安装
+        run: |
+          echo "Node.js 版本: $(node --version)"
+          echo "npm 版本: $(npm --version)"
+          echo "Auggie CLI 版本: $(auggie --version)"
+          echo "BMad-Method 版本: $(bmad-method --version)"
+
+  # 代码质量检查
+  code-quality:
+    name: 🔍 代码质量检查
+    runs-on: ubuntu-latest
+    needs: setup
+    
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📦 恢复依赖缓存
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+            .augment/cache
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}
+      
+      - name: 🔧 安装依赖
+        run: |
+          npm ci
+          npm install -g @augmentcode/auggie@${{ env.AUGGIE_VERSION }}
+          npx bmad-method@${{ env.BMAD_VERSION }} install
+      
+      - name: 🧹 代码格式检查
+        run: |
+          npm run lint
+          npm run format:check
+      
+      - name: 🏗️ 构建检查
+        run: |
+          npm run build
+      
+      - name: 🧪 运行测试
+        run: |
+          npm run test:coverage
+      
+      - name: 📊 上传覆盖率报告
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+
+  # BMad-Method 验证
+  bmad-validation:
+    name: 🧠 BMad-Method 验证
+    runs-on: ubuntu-latest
+    needs: setup
+    
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 🔧 安装 BMad-Method
+        run: |
+          npx bmad-method@${{ env.BMAD_VERSION }} install
+      
+      - name: ✅ BMad 项目验证
+        run: |
+          bmad-method validate --strict
+      
+      - name: 📚 更新知识库
+        run: |
+          bmad-method update-kb --auto-commit=false
+      
+      - name: 📋 生成 BMad 报告
+        run: |
+          bmad-method report --format=json --output=bmad-report.json
+      
+      - name: 📤 上传 BMad 报告
+        uses: actions/upload-artifact@v3
+        with:
+          name: bmad-report
+          path: bmad-report.json
+
+  # Auggie CLI 代码审查
+  auggie-review:
+    name: 🤖 Auggie CLI 审查
+    runs-on: ubuntu-latest
+    needs: setup
+    
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 🔧 安装 Auggie CLI
+        run: |
+          npm install -g @augmentcode/auggie@${{ env.AUGGIE_VERSION }}
+      
+      - name: 🔍 安全规则检查
+        run: |
+          auggie --rules .augment/rules/security-rules.md \
+                 --format json \
+                 --output security-report.json \
+                 --fail-on-error
+      
+      - name: ⚡ 性能规则检查
+        run: |
+          auggie --rules .augment/rules/performance-rules.md \
+                 --format json \
+                 --output performance-report.json \
+                 --no-fail-on-error
+      
+      - name: 🏗️ BMad 集成规则检查
+        run: |
+          auggie --rules .augment/rules/bmad-integration.md \
+                 --format json \
+                 --output integration-report.json \
+                 --context-engine \
+                 --fail-on-error
+      
+      - name: 📤 上传 Auggie 报告
+        uses: actions/upload-artifact@v3
+        with:
+          name: auggie-reports
+          path: |
+            security-report.json
+            performance-report.json
+            integration-report.json
+
+  # 集成审查
+  integrated-review:
+    name: 🔗 集成审查
+    runs-on: ubuntu-latest
+    needs: [bmad-validation, auggie-review]
+    
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 🔧 安装工具
+        run: |
+          npm install -g @augmentcode/auggie@${{ env.AUGGIE_VERSION }}
+          npx bmad-method@${{ env.BMAD_VERSION }} install
+      
+      - name: 📥 下载报告
+        uses: actions/download-artifact@v3
+        with:
+          name: bmad-report
+          path: ./reports/
+      
+      - name: 📥 下载 Auggie 报告
+        uses: actions/download-artifact@v3
+        with:
+          name: auggie-reports
+          path: ./reports/
+      
+      - name: 🔄 运行集成工作流
+        run: |
+          bmad-method workflow run codeReview \
+            --config bmad-config.js \
+            --environment ${{ github.event.inputs.environment || 'development' }}
+      
+      - name: 📊 生成综合报告
+        run: |
+          node scripts/generate-integrated-report.js \
+            --bmad-report ./reports/bmad-report.json \
+            --auggie-reports ./reports/ \
+            --output ./reports/integrated-report.md
+      
+      - name: 💬 PR 评论
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('./reports/integrated-report.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🔍 集成代码审查报告\n\n${report}`
+            });
+      
+      - name: 📤 上传综合报告
+        uses: actions/upload-artifact@v3
+        with:
+          name: integrated-report
+          path: ./reports/integrated-report.md

@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Auggie CLI 与 BMad-Method 集成详细操作指南">
+    <title>🛠️ Auggie CLI × BMad-Method 集成操作指南</title>
+
+    <style>
+        /* 现代化设计系统 */
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #7c3aed;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --bg-dark: #0f172a;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --bg-code: #1e293b;
+
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --text-inverse: #ffffff;
+
+            --border: #e2e8f0;
+            --border-hover: #cbd5e1;
+
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+
+            --radius: 0.75rem;
+            --radius-lg: 1rem;
+
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+        }
+
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        /* 容器 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.95), rgba(124, 58, 237, 0.95));
+            backdrop-filter: blur(20px);
+            color: var(--text-inverse);
+            padding: 3rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ffffff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* 主要内容 */
+        .main-content {
+            background: var(--bg-primary);
+            margin-top: -2rem;
+            border-radius: 2rem 2rem 0 0;
+            position: relative;
+            z-index: 2;
+            padding: 3rem 0;
+        }
+
+        /* 卡片 */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .card-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* 代码块 */
+        .code-block {
+            background: var(--bg-code);
+            color: var(--text-inverse);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            position: relative;
+            border: 1px solid #334155;
+        }
+
+        .code-block::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 0.5rem;
+            right: 0.75rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        /* 步骤样式 */
+        .step {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(124, 58, 237, 0.05));
+            border: 1px solid rgba(37, 99, 235, 0.1);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .step-number {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        .step-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* 子步骤 */
+        .substep {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--primary);
+        }
+
+        .substep-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        /* 警告框 */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            margin: 1rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: rgba(37, 99, 235, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        /* 列表样式 */
+        .feature-list {
+            list-style: none;
+            margin: 1.5rem 0;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+        }
+
+        .feature-list li::before {
+            content: '✅';
+            font-size: 1.1em;
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+
+        /* 表格样式 */
+        .config-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .config-table th,
+        .config-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .config-table th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .config-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .header {
+                padding: 2rem 0;
+            }
+
+            .main-content {
+                padding: 2rem 0;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .step {
+                padding: 1.5rem;
+            }
+        }
+
+        /* 动画 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* 滚动动画 */
+        .scroll-animate {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease-out;
+        }
+
+        .scroll-animate.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content animate-fade-in">
+                <h1>🛠️ Auggie CLI × BMad-Method</h1>
+                <p class="header-subtitle">
+                    集成操作详细指南 - 三个关键步骤的完整实施方案
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 步骤 2: 配置集成规则 -->
+            <section class="step scroll-animate">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div>
+                        <h2 class="step-title">配置集成规则</h2>
+                        <p class="card-subtitle">创建和配置代码审查标准</p>
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h3 class="substep-title">2.1 创建规则文件结构</h3>
+
+                    <div class="alert alert-info">
+                        <strong>📁 目录结构：</strong> 首先需要创建 Auggie CLI 的规则目录结构
+                    </div>
+
+                    <div class="code-block" data-lang="bash">
+<pre># 创建 Auggie CLI 规则目录
+mkdir -p .augment/rules
+mkdir -p .augment/config
+mkdir -p .augment/templates
+
+# 创建 BMad-Method 相关目录
+mkdir -p bmad-core/data
+mkdir -p bmad-core/rules
+mkdir -p bmad-core/templates</pre>
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h3 class="substep-title">2.2 配置主要集成规则文件</h3>
+
+                    <p>创建 <code>.augment/rules/bmad-integration.md</code> 文件：</p>
+
+                    <div class="code-block" data-lang="markdown">
+<pre># BMad-Method 集成规则
+
+## 🎯 代码审查标准
+
+### 架构合规性
+- **模块化设计**: 确保代码遵循 BMad-Method 的模块化架构原则
+- **依赖管理**: 检查依赖注入和模块间耦合度
+- **接口设计**: 验证 API 接口设计符合 RESTful 或 GraphQL 标准
+- **数据流**: 确保数据流向清晰，避免循环依赖
+
+### 代码质量标准
+- **命名规范**:
+  - 类名使用 PascalCase
+  - 方法名使用 camelCase
+  - 常量使用 UPPER_SNAKE_CASE
+  - 文件名使用 kebab-case
+- **注释要求**:
+  - 公共 API 必须有 JSDoc 注释
+  - 复杂业务逻辑必须有行内注释
+  - 每个模块必须有文件头注释
+- **错误处理**:
+  - 所有异步操作必须有错误处理
+  - 使用统一的错误处理机制
+  - 错误信息必须有意义且可追踪
+
+### 测试要求
+- **单元测试覆盖率**: 新增代码覆盖率不低于 80%
+- **集成测试**: 涉及多个模块的功能必须有集成测试
+- **端到端测试**: 关键用户流程必须有 E2E 测试
+- **测试命名**: 测试用例名称必须清晰描述测试场景
+
+### 安全标准
+- **输入验证**: 所有用户输入必须进行验证和清理
+- **权限检查**: API 端点必须有适当的权限验证
+- **敏感数据**: 不得在日志中记录敏感信息
+- **依赖安全**: 检查第三方依赖的安全漏洞
+
+### 性能要求
+- **响应时间**: API 响应时间不超过 200ms
+- **内存使用**: 避免内存泄漏和过度内存使用
+- **数据库查询**: 避免 N+1 查询问题
+- **缓存策略**: 合理使用缓存提升性能
+
+## 🔧 BMad-Method 特定规则
+
+### 工作流合规性
+- **提交信息**: 遵循 BMad-Method 提交信息格式
+  ```
+  type(scope): description
+
+  [optional body]
+
+  [optional footer]
+  ```
+- **分支策略**: 遵循 GitFlow 分支管理策略
+- **代码审查**: 所有代码必须经过至少一人审查
+
+### 文档要求
+- **README**: 每个模块必须有完整的 README 文档
+- **API 文档**: 使用 OpenAPI/Swagger 规范
+- **变更日志**: 维护 CHANGELOG.md 文件
+- **架构文档**: 重要架构决策必须记录在 ADR 中
+
+### 集成检查点
+- **构建状态**: 确保 CI/CD 流水线通过
+- **代码质量**: SonarQube 质量门禁通过
+- **安全扫描**: 安全扫描无高危漏洞
+- **依赖检查**: 依赖版本符合项目要求
+
+## ⚠️ 严重问题标记
+
+以下问题将被标记为严重问题，必须修复：
+
+1. **安全漏洞**: SQL 注入、XSS、CSRF 等安全问题
+2. **性能问题**: 明显的性能瓶颈或资源泄漏
+3. **架构违规**: 违反 BMad-Method 架构原则的设计
+4. **测试缺失**: 关键功能缺少测试覆盖
+5. **文档缺失**: 公共 API 缺少文档
+
+## 📋 检查清单
+
+### 代码提交前检查
+- [ ] 代码符合项目编码规范
+- [ ] 所有测试通过
+- [ ] 代码覆盖率达标
+- [ ] 文档已更新
+- [ ] 提交信息格式正确
+
+### Pull Request 检查
+- [ ] PR 描述清晰完整
+- [ ] 相关 Issue 已关联
+- [ ] 代码审查已完成
+- [ ] CI/CD 流水线通过
+- [ ] 冲突已解决</pre>
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h3 class="substep-title">2.3 创建专项规则文件</h3>
+
+                    <p>创建 <code>.augment/rules/security-rules.md</code>：</p>
+
+                    <div class="code-block" data-lang="markdown">
+<pre># 安全审查规则
+
+## 输入验证
+- 检查所有用户输入是否经过验证
+- 确保使用参数化查询防止 SQL 注入
+- 验证文件上传的类型和大小限制
+
+## 身份认证和授权
+- 检查 API 端点的权限控制
+- 验证 JWT token 的正确使用
+- 确保敏感操作需要额外验证
+
+## 数据保护
+- 检查敏感数据是否加密存储
+- 验证传输过程中的数据加密
+- 确保日志中不包含敏感信息</pre>
+                    </div>
+
+                    <p>创建 <code>.augment/rules/performance-rules.md</code>：</p>
+
+                    <div class="code-block" data-lang="markdown">
+<pre># 性能审查规则
+
+## 数据库优化
+- 检查是否存在 N+1 查询问题
+- 验证数据库索引的合理使用
+- 确保查询语句的效率
+
+## 缓存策略
+- 检查缓存的合理使用
+- 验证缓存失效策略
+- 确保缓存一致性
+
+## 资源管理
+- 检查内存泄漏风险
+- 验证文件句柄的正确关闭
+- 确保异步操作的正确处理</pre>
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h3 class="substep-title">2.4 配置规则优先级和权重</h3>
+
+                    <p>创建 <code>.augment/config/rule-config.json</code>：</p>
+
+                    <div class="code-block" data-lang="json">
+<pre>{
+  "rules": {
+    "bmad-integration": {
+      "enabled": true,
+      "priority": "high",
+      "weight": 1.0,
+      "categories": [
+        "architecture",
+        "quality",
+        "testing",
+        "security",
+        "performance"
+      ]
+    },
+    "security-rules": {
+      "enabled": true,
+      "priority": "critical",
+      "weight": 1.5,
+      "categories": ["security"]
+    },
+    "performance-rules": {
+      "enabled": true,
+      "priority": "medium",
+      "weight": 0.8,
+      "categories": ["performance"]
+    }
+  },
+  "thresholds": {
+    "critical": 0,
+    "high": 2,
+    "medium": 5,
+    "low": 10
+  },
+  "reporting": {
+    "format": "markdown",
+    "includeContext": true,
+    "showSuggestions": true
+  }
+}</pre>
+                    </div>
+                </div>
+
+                <div class="alert alert-success">
+                    <strong>✅ 验证步骤：</strong> 运行 <code>auggie --rules .augment/rules --dry-run</code> 验证规则配置是否正确
+                </div>
+            </section>
+
+            <!-- 步骤 3: 工作流配置 -->
+            <section class="step scroll-animate">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div>
+                        <h2 class="step-title">工作流配置</h2>
+                        <p class="card-subtitle">配置 bmad-config.js 和集成选项</p>
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h3 class="substep-title">3.1 创建主配置文件</h3>
+
+                    <p>创建 <code>bmad-config.js</code> 文件：</p>
+
+                    <div class="code-block" data-lang="javascript">
+<pre>// bmad-config.js - BMad-Method 与 Auggie CLI 集成配置
+module.exports = {
+  // 项目基本信息
+  project: {
+    name: 'my-integrated-project',
+    version: '1.0.0',
+    description: 'BMad-Method 与 Auggie CLI 集成项目',
+    repository: 'https://github.com/username/my-integrated-project'
+  },
+
+  // 集成配置
+  integrations: {
+    auggie: {
+      // 启用 Auggie CLI 集成
+      enabled: true,
+
+      // 规则文件路径
+      rules: [
+        '.augment/rules/bmad-integration.md',
+        '.augment/rules/security-rules.md',
+        '.augment/rules/performance-rules.md'
+      ],
+
+      // 触发器配置
+      triggers: {
+        'pre-commit': {
+          enabled: true,
+          rules: ['bmad-integration', 'security-rules'],
+          failOnError: true,
+          timeout: 30000 // 30秒超时
+        },
+        'pre-push': {
+          enabled: true,
+          rules: ['bmad-integration', 'security-rules', 'performance-rules'],
+          failOnError: true,
+          timeout: 60000 // 60秒超时
+        },
+        'pr-review': {
+          enabled: true,
+          rules: ['bmad-integration', 'security-rules', 'performance-rules'],
+          failOnError: false, // PR 审查不阻塞，仅提供建议
+          timeout: 120000 // 120秒超时
+        }
+      },
+
+      // Auggie CLI 选项
+      options: {
+        // 启用上下文引擎
+        contextEngine: true,
+
+        // 自动修复（谨慎使用）
+        autoFix: false,
+
+        // 报告格式
+        reportFormat: 'markdown',
+
+        // 详细程度
+        verbose: true,
+
+        // 并发处理
+        concurrency: 4,
+
+        // 缓存配置
+        cache: {
+          enabled: true,
+          ttl: 3600000, // 1小时缓存
+          directory: '.augment/cache'
+        }
+      }
+    }
+  },
+
+  // BMad-Method 工作流配置
+  workflows: {
+    // 代码审查工作流
+    codeReview: {
+      name: '代码审查工作流',
+      steps: [
+        {
+          name: 'BMad 验证',
+          command: 'bmad-method validate',
+          required: true
+        },
+        {
+          name: 'Auggie 审查',
+          command: 'auggie --print "根据 BMad-Method 标准审查此代码"',
+          required: true
+        },
+        {
+          name: '更新知识库',
+          command: 'bmad-method update-kb',
+          required: false
+        }
+      ]
+    },
+
+    // 持续集成工作流
+    continuousIntegration: {
+      name: '持续集成工作流',
+      steps: [
+        {
+          name: '代码质量检查',
+          command: 'bmad-method lint',
+          required: true
+        },
+        {
+          name: '安全扫描',
+          command: 'auggie --rules .augment/rules/security-rules.md --quiet',
+          required: true
+        },
+        {
+          name: '性能分析',
+          command: 'auggie --rules .augment/rules/performance-rules.md --quiet',
+          required: false
+        }
+      ]
+    }
+  },
+
+  // 环境配置
+  environments: {
+    development: {
+      auggie: {
+        options: {
+          verbose: true,
+          autoFix: false,
+          reportFormat: 'console'
+        }
+      }
+    },
+    staging: {
+      auggie: {
+        options: {
+          verbose: false,
+          autoFix: false,
+          reportFormat: 'json'
+        }
+      }
+    },
+    production: {
+      auggie: {
+        options: {
+          verbose: false,
+          autoFix: false,
+          reportFormat: 'json',
+          onlyErrors: true
+        }
+      }
+    }
+  },
+
+  // 通知配置
+  notifications: {
+    slack: {
+      enabled: false,
+      webhook: process.env.SLACK_WEBHOOK_URL,
+      channels: {
+        errors: '#dev-alerts',
+        reports: '#code-review'
+      }
+    },
+    email: {
+      enabled: false,
+      smtp: {
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS
+        }
+      },
+      recipients: ['dev-team@company.com']
+    }
+  }
+};</pre>
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h3 class="substep-title">3.2 配置选项详解</h3>
+
+                    <table class="config-table">
+                        <thead>
+                            <tr>
+                                <th>配置项</th>
+                                <th>类型</th>
+                                <th>默认值</th>
+                                <th>说明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>contextEngine</code></td>
+                                <td>boolean</td>
+                                <td>true</td>
+                                <td>启用 Auggie 的上下文引擎，提供更准确的代码理解</td>
+                            </tr>
+                            <tr>
+                                <td><code>autoFix</code></td>
+                                <td>boolean</td>
+                                <td>false</td>
+                                <td>自动修复简单问题（建议在开发环境谨慎使用）</td>
+                            </tr>
+                            <tr>
+                                <td><code>reportFormat</code></td>
+                                <td>string</td>
+                                <td>'markdown'</td>
+                                <td>报告格式：'markdown', 'json', 'console', 'html'</td>
+                            </tr>
+                            <tr>
+                                <td><code>verbose</code></td>
+                                <td>boolean</td>
+                                <td>false</td>
+                                <td>详细输出模式，显示更多调试信息</td>
+                            </tr>
+                            <tr>
+                                <td><code>concurrency</code></td>
+                                <td>number</td>
+                                <td>2</td>
+                                <td>并发处理文件数量，根据系统性能调整</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="substep">
+                    <h3 class="substep-title">3.3 触发器配置最佳实践</h3>
+
+                    <div class="alert alert-info">
+                        <strong>💡 触发器策略：</strong> 不同阶段使用不同的检查强度和规则集
+                    </div>
+
+                    <div class="code-block" data-lang="javascript">
+<pre>// 触发器配置最佳实践
+const triggerBestPractices = {
+  'pre-commit': {
+    // 提交前：快速检查，只检查关键问题
+    enabled: true,
+    rules: ['security-rules'], // 只检查安全问题
+    failOnError: true,
+    timeout: 15000, // 15秒快速检查
+    scope: 'staged-files' // 只检查暂存的文件
+  },
+
+  'pre-push': {
+    // 推送前：中等强度检查
+    enabled: true,
+    rules: ['bmad-integration', 'security-rules'],
+    failOnError: true,
+    timeout: 45000, // 45秒中等检查
+    scope: 'changed-files' // 检查所有变更文件
+  },
+
+  'pr-review': {
+    // PR 审查：全面检查，提供建议
+    enabled: true,
+    rules: ['bmad-integration', 'security-rules', 'performance-rules'],
+    failOnError: false, // 不阻塞 PR，仅提供建议
+    timeout: 180000, // 3分钟全面检查
+    scope: 'all-files', // 检查所有相关文件
+    generateReport: true // 生成详细报告
+  }
+};</pre>
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h3 class="substep-title">3.4 环境特定配置</h3>
+
+                    <p>创建 <code>.augment/config/environments.json</code>：</p>
+
+                    <div class="code-block" data-lang="json">
+<pre>{
+  "development": {
+    "auggie": {
+      "options": {
+        "verbose": true,
+        "reportFormat": "console",
+        "autoFix": false,
+        "contextEngine": true,
+        "cache": {
+          "enabled": true,
+          "ttl": 1800000
+        }
+      },
+      "rules": {
+        "severity": "medium",
+        "includeWarnings": true
+      }
+    }
+  },
+
+  "testing": {
+    "auggie": {
+      "options": {
+        "verbose": false,
+        "reportFormat": "json",
+        "autoFix": false,
+        "contextEngine": true,
+        "cache": {
+          "enabled": true,
+          "ttl": 3600000
+        }
+      },
+      "rules": {
+        "severity": "high",
+        "includeWarnings": false
+      }
+    }
+  },
+
+  "production": {
+    "auggie": {
+      "options": {
+        "verbose": false,
+        "reportFormat": "json",
+        "autoFix": false,
+        "contextEngine": false,
+        "onlyErrors": true,
+        "cache": {
+          "enabled": false
+        }
+      },
+      "rules": {
+        "severity": "critical",
+        "includeWarnings": false
+      }
+    }
+  }
+}</pre>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <strong>⚠️ 注意事项：</strong>
+                    <ul style="margin: 0.5rem 0 0 1.5rem;">
+                        <li><code>autoFix</code> 功能应该谨慎使用，建议先在开发环境测试</li>
+                        <li><code>timeout</code> 值应根据项目大小和系统性能调整</li>
+                        <li>生产环境建议关闭 <code>verbose</code> 模式以提高性能</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 步骤 4: CI/CD 集成 -->
+            <section class="step scroll-animate">
+                <div class="step-header">
+                    <div class="step-number">4</div>
+                    <div>
+                        <h2 class="step-title">CI/CD 集成</h2>
+                        <p class="card-subtitle">配置 GitHub Actions 工作流</p>
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h3 class="substep-title">4.1 创建主要工作流文件</h3>
+
+                    <p>创建 <code>.github/workflows/bmad-auggie-integration.yml</code>：</p>
+
+                    <div class="code-block" data-lang="yaml">
+<pre># BMad-Method 与 Auggie CLI 集成工作流
+name: 🔄 BMad-Auggie Integration
+
+# 触发条件
+on:
+  # Pull Request 触发
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+
+  # Push 到主分支触发
+  push:
+    branches:
+      - main
+      - develop
+
+  # 手动触发
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: '运行环境'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+# 环境变量
+env:
+  NODE_VERSION: '22'
+  AUGGIE_VERSION: 'latest'
+  BMAD_VERSION: 'latest'
+
+# 作业定义
+jobs:
+  # 环境准备和依赖安装
+  setup:
+    name: 🚀 环境准备
+    runs-on: ubuntu-latest
+    outputs:
+      node-version: ${{ steps.setup-node.outputs.node-version }}
+      cache-key: ${{ steps.cache-deps.outputs.cache-hit }}
+
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          # 获取完整历史，用于 BMad-Method 分析
+          fetch-depth: 0
+
+      - name: 🟢 设置 Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 缓存依赖
+        id: cache-deps
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+            .augment/cache
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - name: 🔧 安装全局依赖
+        run: |
+          npm install -g @augmentcode/auggie@${{ env.AUGGIE_VERSION }}
+          npx bmad-method@${{ env.BMAD_VERSION }} install
+
+      - name: ✅ 验证安装
+        run: |
+          echo "Node.js 版本: $(node --version)"
+          echo "npm 版本: $(npm --version)"
+          echo "Auggie CLI 版本: $(auggie --version)"
+          echo "BMad-Method 版本: $(bmad-method --version)"
+
+  # 代码质量检查
+  code-quality:
+    name: 🔍 代码质量检查
+    runs-on: ubuntu-latest
+    needs: setup
+
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 恢复依赖缓存
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+            .augment/cache
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}
+
+      - name: 🔧 安装依赖
+        run: |
+          npm ci
+          npm install -g @augmentcode/auggie@${{ env.AUGGIE_VERSION }}
+          npx bmad-method@${{ env.BMAD_VERSION }} install
+
+      - name: 🧹 代码格式检查
+        run: |
+          npm run lint
+          npm run format:check
+
+      - name: 🏗️ 构建检查
+        run: |
+          npm run build
+
+      - name: 🧪 运行测试
+        run: |
+          npm run test:coverage
+
+      - name: 📊 上传覆盖率报告
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+
+  # BMad-Method 验证
+  bmad-validation:
+    name: 🧠 BMad-Method 验证
+    runs-on: ubuntu-latest
+    needs: setup
+
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 🔧 安装 BMad-Method
+        run: |
+          npx bmad-method@${{ env.BMAD_VERSION }} install
+
+      - name: ✅ BMad 项目验证
+        run: |
+          bmad-method validate --strict
+
+      - name: 📚 更新知识库
+        run: |
+          bmad-method update-kb --auto-commit=false
+
+      - name: 📋 生成 BMad 报告
+        run: |
+          bmad-method report --format=json --output=bmad-report.json
+
+      - name: 📤 上传 BMad 报告
+        uses: actions/upload-artifact@v3
+        with:
+          name: bmad-report
+          path: bmad-report.json
+
+  # Auggie CLI 代码审查
+  auggie-review:
+    name: 🤖 Auggie CLI 审查
+    runs-on: ubuntu-latest
+    needs: setup
+
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 🔧 安装 Auggie CLI
+        run: |
+          npm install -g @augmentcode/auggie@${{ env.AUGGIE_VERSION }}
+
+      - name: 🔍 安全规则检查
+        run: |
+          auggie --rules .augment/rules/security-rules.md \
+                 --format json \
+                 --output security-report.json \
+                 --fail-on-error
+
+      - name: ⚡ 性能规则检查
+        run: |
+          auggie --rules .augment/rules/performance-rules.md \
+                 --format json \
+                 --output performance-report.json \
+                 --no-fail-on-error
+
+      - name: 🏗️ BMad 集成规则检查
+        run: |
+          auggie --rules .augment/rules/bmad-integration.md \
+                 --format json \
+                 --output integration-report.json \
+                 --context-engine \
+                 --fail-on-error
+
+      - name: 📤 上传 Auggie 报告
+        uses: actions/upload-artifact@v3
+        with:
+          name: auggie-reports
+          path: |
+            security-report.json
+            performance-report.json
+            integration-report.json
+
+  # 集成审查
+  integrated-review:
+    name: 🔗 集成审查
+    runs-on: ubuntu-latest
+    needs: [bmad-validation, auggie-review]
+
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 🔧 安装工具
+        run: |
+          npm install -g @augmentcode/auggie@${{ env.AUGGIE_VERSION }}
+          npx bmad-method@${{ env.BMAD_VERSION }} install
+
+      - name: 📥 下载报告
+        uses: actions/download-artifact@v3
+        with:
+          name: bmad-report
+          path: ./reports/
+
+      - name: 📥 下载 Auggie 报告
+        uses: actions/download-artifact@v3
+        with:
+          name: auggie-reports
+          path: ./reports/
+
+      - name: 🔄 运行集成工作流
+        run: |
+          bmad-method workflow run codeReview \
+            --config bmad-config.js \
+            --environment ${{ github.event.inputs.environment || 'development' }}
+
+      - name: 📊 生成综合报告
+        run: |
+          node scripts/generate-integrated-report.js \
+            --bmad-report ./reports/bmad-report.json \
+            --auggie-reports ./reports/ \
+            --output ./reports/integrated-report.md
+
+      - name: 💬 PR 评论
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('./reports/integrated-report.md', 'utf8');
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🔍 集成代码审查报告\n\n${report}`
+            });
+
+      - name: 📤 上传综合报告
+        uses: actions/upload-artifact@v3
+        with:
+          name: integrated-report
+          path: ./reports/integrated-report.md</pre>
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h3 class="substep-title">4.2 创建报告生成脚本</h3>
+
+                    <p>创建 <code>scripts/generate-integrated-report.js</code>：</p>
+
+                    <div class="code-block" data-lang="javascript">
+<pre>#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+const { program } = require('commander');
+
+// 命令行参数解析
+program
+  .option('--bmad-report <path>', 'BMad-Method 报告路径')
+  .option('--auggie-reports <path>', 'Auggie CLI 报告目录')
+  .option('--output <path>', '输出文件路径')
+  .parse();
+
+const options = program.opts();
+
+// 生成集成报告
+async function generateIntegratedReport() {
+  try {
+    // 读取 BMad-Method 报告
+    const bmadReport = JSON.parse(
+      fs.readFileSync(options.bmadReport, 'utf8')
+    );
+
+    // 读取 Auggie CLI 报告
+    const auggieReports = {
+      security: JSON.parse(
+        fs.readFileSync(path.join(options.auggieReports, 'security-report.json'), 'utf8')
+      ),
+      performance: JSON.parse(
+        fs.readFileSync(path.join(options.auggieReports, 'performance-report.json'), 'utf8')
+      ),
+      integration: JSON.parse(
+        fs.readFileSync(path.join(options.auggieReports, 'integration-report.json'), 'utf8')
+      )
+    };
+
+    // 生成 Markdown 报告
+    const report = generateMarkdownReport(bmadReport, auggieReports);
+
+    // 写入输出文件
+    fs.writeFileSync(options.output, report, 'utf8');
+
+    console.log(`✅ 集成报告已生成: ${options.output}`);
+  } catch (error) {
+    console.error('❌ 生成报告失败:', error.message);
+    process.exit(1);
+  }
+}
+
+function generateMarkdownReport(bmadReport, auggieReports) {
+  const timestamp = new Date().toISOString();
+
+  return `# 🔍 集成代码审查报告
+
+**生成时间**: ${timestamp}
+
+## 📊 总体概览
+
+| 工具 | 状态 | 问题数量 | 严重程度 |
+|------|------|----------|----------|
+| BMad-Method | ${bmadReport.status} | ${bmadReport.issues?.length || 0} | ${bmadReport.severity || 'N/A'} |
+| Auggie (安全) | ${auggieReports.security.status} | ${auggieReports.security.issues?.length || 0} | ${auggieReports.security.severity || 'N/A'} |
+| Auggie (性能) | ${auggieReports.performance.status} | ${auggieReports.performance.issues?.length || 0} | ${auggieReports.performance.severity || 'N/A'} |
+| Auggie (集成) | ${auggieReports.integration.status} | ${auggieReports.integration.issues?.length || 0} | ${auggieReports.integration.severity || 'N/A'} |
+
+## 🧠 BMad-Method 分析结果
+
+${formatBmadReport(bmadReport)}
+
+## 🤖 Auggie CLI 分析结果
+
+### 🔒 安全检查
+${formatAuggieReport(auggieReports.security)}
+
+### ⚡ 性能检查
+${formatAuggieReport(auggieReports.performance)}
+
+### 🔗 集成检查
+${formatAuggieReport(auggieReports.integration)}
+
+## 💡 综合建议
+
+${generateRecommendations(bmadReport, auggieReports)}
+
+---
+*此报告由 BMad-Method 与 Auggie CLI 集成系统自动生成*`;
+}
+
+function formatBmadReport(report) {
+  if (!report.issues || report.issues.length === 0) {
+    return '✅ 未发现问题';
+  }
+
+  return report.issues.map(issue =>
+    `- **${issue.severity}**: ${issue.message} (${issue.file}:${issue.line})`
+  ).join('\n');
+}
+
+function formatAuggieReport(report) {
+  if (!report.issues || report.issues.length === 0) {
+    return '✅ 未发现问题';
+  }
+
+  return report.issues.map(issue =>
+    `- **${issue.severity}**: ${issue.message}\n  - 文件: ${issue.file}\n  - 建议: ${issue.suggestion || '无'}`
+  ).join('\n\n');
+}
+
+function generateRecommendations(bmadReport, auggieReports) {
+  const recommendations = [];
+
+  // 基于报告生成建议
+  const totalIssues = (bmadReport.issues?.length || 0) +
+                     (auggieReports.security.issues?.length || 0) +
+                     (auggieReports.performance.issues?.length || 0) +
+                     (auggieReports.integration.issues?.length || 0);
+
+  if (totalIssues === 0) {
+    recommendations.push('🎉 代码质量良好，符合 BMad-Method 标准！');
+  } else {
+    recommendations.push(`📋 发现 ${totalIssues} 个问题需要处理`);
+
+    if (auggieReports.security.issues?.length > 0) {
+      recommendations.push('🔒 优先处理安全问题');
+    }
+
+    if (bmadReport.issues?.length > 0) {
+      recommendations.push('🧠 确保代码符合 BMad-Method 架构原则');
+    }
+
+    if (auggieReports.performance.issues?.length > 0) {
+      recommendations.push('⚡ 考虑优化性能相关问题');
+    }
+  }
+
+  return recommendations.join('\n- ');
+}
+
+// 运行脚本
+generateIntegratedReport();</pre>
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h3 class="substep-title">4.3 工作流步骤详解</h3>
+
+                    <table class="config-table">
+                        <thead>
+                            <tr>
+                                <th>步骤</th>
+                                <th>作用</th>
+                                <th>必要性</th>
+                                <th>失败处理</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>环境准备</strong></td>
+                                <td>安装 Node.js、Auggie CLI、BMad-Method</td>
+                                <td>必需</td>
+                                <td>终止工作流</td>
+                            </tr>
+                            <tr>
+                                <td><strong>代码质量检查</strong></td>
+                                <td>运行 lint、格式检查、构建、测试</td>
+                                <td>必需</td>
+                                <td>终止工作流</td>
+                            </tr>
+                            <tr>
+                                <td><strong>BMad 验证</strong></td>
+                                <td>验证项目符合 BMad-Method 标准</td>
+                                <td>必需</td>
+                                <td>终止工作流</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Auggie 审查</strong></td>
+                                <td>AI 驱动的代码审查和建议</td>
+                                <td>必需</td>
+                                <td>记录问题，继续执行</td>
+                            </tr>
+                            <tr>
+                                <td><strong>集成审查</strong></td>
+                                <td>综合分析和报告生成</td>
+                                <td>可选</td>
+                                <td>记录警告，继续执行</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="substep">
+                    <h3 class="substep-title">4.4 环境变量和密钥配置</h3>
+
+                    <div class="alert alert-info">
+                        <strong>🔐 GitHub Secrets 配置：</strong> 在 GitHub 仓库设置中添加以下密钥
+                    </div>
+
+                    <div class="code-block" data-lang="bash">
+<pre># 必需的 GitHub Secrets
+AUGGIE_API_KEY=your_auggie_api_key_here
+BMAD_LICENSE_KEY=your_bmad_license_key_here
+
+# 可选的通知配置
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password</pre>
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h3 class="substep-title">4.5 常见问题和解决方案</h3>
+
+                    <div class="alert alert-error">
+                        <strong>❌ 问题 1：</strong> Node.js 版本不兼容
+                        <br><strong>解决方案：</strong> 确保使用 Node.js 22+ 版本，在工作流中明确指定版本
+                    </div>
+
+                    <div class="alert alert-error">
+                        <strong>❌ 问题 2：</strong> Auggie CLI 安装失败
+                        <br><strong>解决方案：</strong> 检查 API 密钥配置，使用 <code>npm install -g @augmentcode/auggie --verbose</code> 查看详细错误
+                    </div>
+
+                    <div class="alert alert-error">
+                        <strong>❌ 问题 3：</strong> 工作流超时
+                        <br><strong>解决方案：</strong> 调整 <code>timeout-minutes</code> 设置，优化并发处理
+                    </div>
+
+                    <div class="alert alert-error">
+                        <strong>❌ 问题 4：</strong> 权限不足
+                        <br><strong>解决方案：</strong> 确保 GitHub Token 有足够权限，检查仓库设置
+                    </div>
+                </div>
+
+                <div class="alert alert-success">
+                    <strong>✅ 验证步骤：</strong>
+                    <ul style="margin: 0.5rem 0 0 1.5rem;">
+                        <li>创建测试 PR 验证工作流是否正常运行</li>
+                        <li>检查所有步骤是否成功执行</li>
+                        <li>确认报告生成和 PR 评论功能正常</li>
+                        <li>测试不同环境配置的工作流</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 总结 -->
+            <section class="step scroll-animate">
+                <div class="step-header">
+                    <div class="step-number">✅</div>
+                    <div>
+                        <h2 class="step-title">集成完成检查清单</h2>
+                        <p class="card-subtitle">确保所有配置正确无误</p>
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h3 class="substep-title">📋 最终检查清单</h3>
+
+                    <ul class="feature-list">
+                        <li>✅ 创建了完整的规则文件结构</li>
+                        <li>✅ 配置了 bmad-config.js 文件</li>
+                        <li>✅ 设置了环境特定配置</li>
+                        <li>✅ 创建了 GitHub Actions 工作流</li>
+                        <li>✅ 配置了必要的环境变量和密钥</li>
+                        <li>✅ 创建了报告生成脚本</li>
+                        <li>✅ 测试了工作流的正常运行</li>
+                        <li>✅ 验证了集成审查功能</li>
+                    </ul>
+                </div>
+
+                <div class="alert alert-success">
+                    <strong>🎉 恭喜！</strong> 你已经成功完成了 Auggie CLI 与 BMad-Method 的集成配置。
+                    现在你的项目具备了 AI 驱动的代码审查和结构化开发方法论的双重保障。
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // 滚动动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        // 观察所有需要动画的元素
+        document.querySelectorAll('.scroll-animate').forEach(el => {
+            observer.observe(el);
+        });
+
+        // 代码块复制功能
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.style.cursor = 'pointer';
+            block.title = '点击复制代码';
+
+            block.addEventListener('click', async function() {
+                const text = this.querySelector('pre').textContent;
+                try {
+                    await navigator.clipboard.writeText(text);
+
+                    // 显示复制成功提示
+                    const originalBg = this.style.background;
+                    this.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
+
+                    setTimeout(() => {
+                        this.style.background = originalBg;
+                    }, 1000);
+                } catch (err) {
+                    console.error('复制失败:', err);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

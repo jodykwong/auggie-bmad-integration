@@ -1,0 +1,110 @@
+{
+  "name": "auggie-bmad-integration",
+  "version": "1.0.0",
+  "description": "Complete integration solution for Auggie CLI and BMad-Method with automated setup, configuration files, and CI/CD workflows",
+  "main": "bmad-integration-config-examples/bmad-config.js",
+  "scripts": {
+    "setup": "bash setup.sh",
+    "setup:windows": "setup.bat",
+    "validate": "node -c bmad-integration-config-examples/bmad-config.js && node -c bmad-integration-config-examples/scripts/generate-integrated-report.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "echo \"Linting shell scripts...\" && shellcheck setup.sh || echo \"shellcheck not available\"",
+    "docs": "echo \"Opening documentation...\" && open auggie-bmad-integration-guide.html || start auggie-bmad-integration-guide.html || xdg-open auggie-bmad-integration-guide.html"
+  },
+  "keywords": [
+    "auggie-cli",
+    "bmad-method",
+    "code-review",
+    "ai",
+    "automation",
+    "ci-cd",
+    "github-actions",
+    "integration",
+    "development-tools",
+    "code-quality",
+    "methodology",
+    "workflow"
+  ],
+  "author": {
+    "name": "Jody Kwong",
+    "email": "jodykwong@example.com",
+    "url": "https://github.com/jodykwong"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jodykwong/auggie-bmad-integration.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jodykwong/auggie-bmad-integration/issues"
+  },
+  "homepage": "https://github.com/jodykwong/auggie-bmad-integration#readme",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "files": [
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "DEMO.md",
+    "setup.sh",
+    "setup.bat",
+    "auggie-bmad-integration-guide.html",
+    "auggie-bmad-integration-report.html",
+    "bmad-integration-config-examples/"
+  ],
+  "directories": {
+    "doc": ".",
+    "example": "bmad-integration-config-examples"
+  },
+  "devDependencies": {
+    "commander": "^11.0.0"
+  },
+  "peerDependencies": {
+    "@augmentcode/auggie": ">=1.0.0"
+  },
+  "config": {
+    "supported_platforms": [
+      "linux",
+      "darwin",
+      "win32"
+    ],
+    "required_node_version": "22.0.0",
+    "auggie_min_version": "1.0.0",
+    "bmad_min_version": "4.43.0"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/username"
+  },
+  "badges": [
+    {
+      "description": "MIT License",
+      "href": "https://opensource.org/licenses/MIT",
+      "url": "https://img.shields.io/badge/License-MIT-yellow.svg"
+    },
+    {
+      "description": "Node.js Version",
+      "href": "https://nodejs.org/",
+      "url": "https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg"
+    },
+    {
+      "description": "Platform Support",
+      "href": "https://github.com/username/auggie-bmad-integration",
+      "url": "https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Integration Team",
+      "email": "team@example.com",
+      "url": "https://github.com/username"
+    }
+  ]
+}
