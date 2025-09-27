@@ -41,7 +41,26 @@ auggie-bmad-integration/
 
 ## 🚀 快速开始
 
-### 方法一：使用自动安装脚本（推荐）
+### 方法一：新项目快速开始（推荐）
+
+#### 使用项目初始化向导
+```bash
+# 克隆集成框架
+git clone https://github.com/jodykwong/auggie-bmad-integration.git
+cd auggie-bmad-integration
+
+# 运行项目初始化向导（自动检测项目类型并生成配置）
+./scripts/project-init.sh
+
+# 安装到你的项目
+./setup.sh /path/to/your/project
+
+# 验证安装
+cd /path/to/your/project
+./verify-setup.sh
+```
+
+### 方法二：现有项目集成
 
 #### Linux/macOS 用户
 ```bash
@@ -133,20 +152,27 @@ SMTP_PASS=your_app_password
 
 ## 📖 详细文档
 
-### 集成可行性报告
-打开 `auggie-bmad-integration-report.html` 查看完整的集成可行性调研报告，包括：
-- 工具概述
-- 技术架构兼容性分析
-- 集成方式说明
-- 潜在问题和解决方案
-- 实施建议
+### 🚀 新项目实施指南
+- **[PROJECT_IMPLEMENTATION_GUIDE.md](PROJECT_IMPLEMENTATION_GUIDE.md)** - 完整的项目实施指南
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - 快速参考和常用命令
+- **[scripts/project-init.sh](scripts/project-init.sh)** - 项目初始化向导
+- **[scripts/verify-setup.sh](scripts/verify-setup.sh)** - 安装验证脚本
 
-### 操作指南
+### 📊 集成可行性报告
+打开 `auggie-bmad-integration-report.html` 查看完整的集成可行性调研报告，包括：
+- 工具概述和技术架构兼容性分析
+- 集成方式说明和潜在问题解决方案
+- 实施建议和成功指标
+
+### 📋 操作指南
 打开 `auggie-bmad-integration-guide.html` 查看详细的操作指南，包括：
 - 配置集成规则的具体步骤
 - 工作流配置的详细说明
 - CI/CD 集成的完整实现
 - 常见问题和解决方案
+
+### 🎬 演示教程
+- **[DEMO.md](DEMO.md)** - 手把手的演示教程和故障排除
 
 ## 🔧 配置说明
 
